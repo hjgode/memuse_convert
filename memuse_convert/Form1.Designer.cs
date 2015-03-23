@@ -32,9 +32,11 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.txtFile = new System.Windows.Forms.TextBox();
-            this.btnLoad = new System.Windows.Forms.Button();
             this.btnExport = new System.Windows.Forms.Button();
+            this.btnLoad = new System.Windows.Forms.Button();
+            this.txtFile = new System.Windows.Forms.TextBox();
+            this.txtLog = new System.Windows.Forms.TextBox();
+            this.lblLineCount = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -56,7 +58,7 @@
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(3, 83);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(794, 405);
+            this.dataGridView1.Size = new System.Drawing.Size(794, 324);
             this.dataGridView1.TabIndex = 1;
             // 
             // tableLayoutPanel1
@@ -65,18 +67,21 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.dataGridView1, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.txtLog, 0, 2);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowCount = 3;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 80F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 81F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(800, 491);
             this.tableLayoutPanel1.TabIndex = 2;
             this.tableLayoutPanel1.Paint += new System.Windows.Forms.PaintEventHandler(this.tableLayoutPanel1_Paint);
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.lblLineCount);
             this.panel1.Controls.Add(this.btnExport);
             this.panel1.Controls.Add(this.btnLoad);
             this.panel1.Controls.Add(this.txtFile);
@@ -86,23 +91,6 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(794, 63);
             this.panel1.TabIndex = 3;
-            // 
-            // txtFile
-            // 
-            this.txtFile.Location = new System.Drawing.Point(3, 3);
-            this.txtFile.Name = "txtFile";
-            this.txtFile.Size = new System.Drawing.Size(479, 20);
-            this.txtFile.TabIndex = 1;
-            // 
-            // btnLoad
-            // 
-            this.btnLoad.Location = new System.Drawing.Point(488, 4);
-            this.btnLoad.Name = "btnLoad";
-            this.btnLoad.Size = new System.Drawing.Size(42, 19);
-            this.btnLoad.TabIndex = 2;
-            this.btnLoad.Text = "...";
-            this.btnLoad.UseVisualStyleBackColor = true;
-            this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
             // 
             // btnExport
             // 
@@ -114,6 +102,45 @@
             this.btnExport.UseVisualStyleBackColor = true;
             this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
             // 
+            // btnLoad
+            // 
+            this.btnLoad.Location = new System.Drawing.Point(488, 4);
+            this.btnLoad.Name = "btnLoad";
+            this.btnLoad.Size = new System.Drawing.Size(42, 19);
+            this.btnLoad.TabIndex = 2;
+            this.btnLoad.Text = "...";
+            this.btnLoad.UseVisualStyleBackColor = true;
+            this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
+            // 
+            // txtFile
+            // 
+            this.txtFile.Location = new System.Drawing.Point(3, 3);
+            this.txtFile.Name = "txtFile";
+            this.txtFile.Size = new System.Drawing.Size(479, 20);
+            this.txtFile.TabIndex = 1;
+            // 
+            // txtLog
+            // 
+            this.txtLog.AcceptsReturn = true;
+            this.txtLog.AcceptsTab = true;
+            this.txtLog.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtLog.Location = new System.Drawing.Point(3, 413);
+            this.txtLog.Multiline = true;
+            this.txtLog.Name = "txtLog";
+            this.txtLog.ReadOnly = true;
+            this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtLog.Size = new System.Drawing.Size(794, 75);
+            this.txtLog.TabIndex = 4;
+            // 
+            // lblLineCount
+            // 
+            this.lblLineCount.Location = new System.Drawing.Point(704, 29);
+            this.lblLineCount.Name = "lblLineCount";
+            this.lblLineCount.Size = new System.Drawing.Size(81, 16);
+            this.lblLineCount.TabIndex = 4;
+            this.lblLineCount.Text = "-";
+            this.lblLineCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -123,9 +150,10 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "memuse converter";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);
@@ -141,6 +169,8 @@
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.TextBox txtFile;
         private System.Windows.Forms.Button btnExport;
+        private System.Windows.Forms.TextBox txtLog;
+        private System.Windows.Forms.Label lblLineCount;
     }
 }
 

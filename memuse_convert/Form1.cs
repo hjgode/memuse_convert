@@ -11,17 +11,59 @@ namespace memuse_convert
 {
     public partial class Form1 : Form
     {
-        memuse_cvt1 cvt1 = new memuse_cvt1();
+        memuse_cvt1 cvt1;
         string sImportFilename = "";
+
         public Form1()
         {
             InitializeComponent();
+            cvt1 = new memuse_cvt1();
+            cvt1.Event1 += new MyHandler1(cvt1_Event1); 
         }
+
+        void cvt1_Event1(object sender, MyEvent e)
+        {
+            switch (e.msgType)
+            {
+                case MsgType.info:
+                    addLog(e.message);
+                    break;
+                case MsgType.progress:
+                    Invoke(new Action(() => this.lblLineCount.Text=e.message));
+                    break;
+            }
+            Application.DoEvents();
+        }
+
+
         public Form1(string sFile)
         {
-            InitializeComponent(); 
+            InitializeComponent();
+            cvt1 = new memuse_cvt1();
             importFile(sFile);
             exportFile(sFile + ".csv");
+        }
+
+        delegate void SetTextCallback(string text);
+        public void addLog(string text)
+        {
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            if (this.txtLog.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(addLog);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                if (txtLog.Text.Length > 32000)
+                    txtLog.Text = "";
+                txtLog.Text += text + "\r\n";
+                txtLog.SelectionLength = 0;
+                txtLog.SelectionStart = txtLog.Text.Length - 1;
+                txtLog.ScrollToCaret();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -47,7 +89,6 @@ namespace memuse_convert
             }
             sImportFilename = sFilename;
             //memuse_logfile mLog = new memuse_logfile(linuxfile);
-            cvt1 = new memuse_cvt1();
             this.Cursor = Cursors.WaitCursor; Application.DoEvents();
             cvt1.doConvert(sFilename);
             this.Cursor = Cursors.Default; Application.DoEvents();

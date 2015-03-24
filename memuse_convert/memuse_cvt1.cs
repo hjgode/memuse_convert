@@ -130,16 +130,18 @@ namespace memuse_convert
                 {
                     if (!Convert.IsDBNull(dr[i]))
                     {
-                        string value = dr[i].ToString();
+						string value="";
+						if(i==0){ //first column is datetime
+							DateTime dt=(DateTime)dr[i];
+							value=dt.ToString("dd.MM.yyyy HH:mm:ss");
+						}
+						else
+                        	value = dr[i].ToString();
                         if (value.Contains(","))
                         {
                             value = String.Format("\"{0}\"", value);
-                            sw.Write(value);
                         }
-                        else
-                        {
-                            sw.Write(dr[i].ToString());
-                        }
+                        sw.Write(value);
                     }
                     if (i < dtDataTable.Columns.Count - 1)
                     {

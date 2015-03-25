@@ -26,14 +26,15 @@ namespace memuse_convert
     public class memuse_cvt1
     {
         public DataTable _dataTable;
+        int numLinesInFile = 0;
 
         public memuse_cvt1()
         {
-            _dataTable = new DataTable();
         }
 
         public int doConvert(string sFile)
         {
+            _dataTable = new DataTable();
             string sline;
             updateStatus("starting convert");
 
@@ -43,12 +44,22 @@ namespace memuse_convert
             System.IO.StreamReader file = File.OpenText(sFile);// new System.IO.StreamReader(sFileName);
             //            System.IO.StreamWriter fileTemp = new StreamWriter(sFileTemp);
 
+            //get number of lines
+            while ((sline = file.ReadLine()) != null)
+            {
+                numLinesInFile++;
+            }
+            file.Close(); //reset
+            FireEvent(MsgType.progress_max, numLinesInFile);
+
+            file=File.OpenText(sFile);
+
             long dtCurrent = DateTime.Now.Ticks;
             //			int iCurrentColumn=0;
             string processName = "";
             string processMemory = "";
             string totalmem = "";
-
+            
             DataColumn dcTicks = new DataColumn("time", typeof(DateTime));
             _dataTable.Columns.Add(dcTicks);
 
@@ -56,9 +67,12 @@ namespace memuse_convert
             int errorLines = 0;
             while ((sline = file.ReadLine()) != null)
             {
-                System.Console.Write(".");
+                //System.Console.Write(".");
+                FireEvent(MsgType.progress, lineCount);
+                lineCount++;
+
                 string[] splitted = sline.Split(new char[] { '\t' });
-                updateStatus(lineCount++.ToString());
+                //updateStatus(lineCount++.ToString());
                 try
                 {
                     //first column is datetime
@@ -86,7 +100,8 @@ namespace memuse_convert
                         //add new column?
                         if (!_dataTable.Columns.Contains(processName))
                         {
-                            _dataTable.Columns.Add(processName, typeof(string));
+                            DataColumn dcNew = _dataTable.Columns.Add(processName, typeof(string));
+                            dcNew.DefaultValue = "0";
                         }
                         dr[processName] = processMemory;
                         continue;
@@ -96,7 +111,8 @@ namespace memuse_convert
                         totalmem = splitted[x].Trim(new char[] { '(', ')' });
                         if (!_dataTable.Columns.Contains("total"))
                         {
-                            _dataTable.Columns.Add("total", typeof(string));
+                            DataColumn dcNew1 = _dataTable.Columns.Add("total", typeof(string));
+                            dcNew1.DefaultValue = "0";
                         }
                         dr["total"] = totalmem;
                         continue;
@@ -113,11 +129,16 @@ namespace memuse_convert
 
         public void ToCSV(DataTable dtDataTable, string strFilePath)
         {
+            numLinesInFile = dtDataTable.Rows.Count;
+            FireEvent(MsgType.progress_max, numLinesInFile);
+            FireEvent(MsgType.progress, 0);
+            int iCurrentLine = 0;
+
             StreamWriter sw = new StreamWriter(strFilePath, false);
             //headers  
             for (int i = 0; i < dtDataTable.Columns.Count; i++)
             {
-                sw.Write(dtDataTable.Columns[i]);
+                sw.Write(dtDataTable.Columns[i]);// + "("+i.ToString()+")");
                 if (i < dtDataTable.Columns.Count - 1)
                 {
                     sw.Write("\t");
@@ -126,23 +147,32 @@ namespace memuse_convert
             sw.Write(sw.NewLine);
             foreach (DataRow dr in dtDataTable.Rows)
             {
+                FireEvent(MsgType.progress, iCurrentLine);
+                iCurrentLine++;
                 for (int i = 0; i < dtDataTable.Columns.Count; i++)
                 {
                     if (!Convert.IsDBNull(dr[i]))
                     {
-						string value="";
-						if(i==0){ //first column is datetime
-							DateTime dt=(DateTime)dr[i];
-							value=dt.ToString("dd.MM.yyyy HH:mm:ss");
-						}
-						else
-                        	value = dr[i].ToString();
+                        string value = "";
+                        if (i == 0)
+                        { //first column is datetime
+                            DateTime dt = (DateTime)dr[i];
+                            value = dt.ToString("dd.MM.yyyy HH:mm:ss");
+                        }
+                        else
+                            value = dr[i].ToString();
+
                         if (value.Contains(","))
                         {
                             value = String.Format("\"{0}\"", value);
                         }
                         sw.Write(value);
                     }
+                    else
+                    {
+                        sw.Write("0");
+                    }
+
                     if (i < dtDataTable.Columns.Count - 1)
                     {
                         sw.Write("\t");
@@ -163,6 +193,18 @@ namespace memuse_convert
         {
             MyEvent e1 = new MyEvent(m,message);
             e1.message = message;
+
+            if (Event1 != null)
+            {
+                Event1(this, e1);               
+            }
+
+            e1 = null;
+        }
+        private void FireEvent(MsgType m, int message)
+        {
+            MyEvent e1 = new MyEvent(m,message);
+            e1.num = message;
 
             if (Event1 != null)
             {

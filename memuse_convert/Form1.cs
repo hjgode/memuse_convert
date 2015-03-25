@@ -28,8 +28,15 @@ namespace memuse_convert
                 case MsgType.info:
                     addLog(e.message);
                     break;
+                case MsgType.progress_max:
+                    Invoke(new Action(() => this.progressBar1.Maximum = e.num));
+                    Application.DoEvents();
+                    break;
                 case MsgType.progress:
-                    Invoke(new Action(() => this.lblLineCount.Text=e.message));
+                    Invoke(new Action(() => this.lblLineCount.Text=e.num.ToString()));
+                    Invoke(new Action(() => this.progressBar1.Value = e.num));
+                    Invoke(new Action(() => this.progressBar1.Update()));
+                    Application.DoEvents();
                     break;
             }
             Application.DoEvents();
@@ -93,6 +100,7 @@ namespace memuse_convert
             cvt1.doConvert(sFilename);
             this.Cursor = Cursors.Default; Application.DoEvents();
             dataGridView1.DataSource = cvt1._dataTable;
+            txtLog.Text+="file '"+sFilename+"' imported\r\n";
         }
 
         void exportFile(string savefile)
@@ -109,12 +117,14 @@ namespace memuse_convert
                 cvt1.ToCSV(cvt1._dataTable, savefile);// "exported.csv");
                 Application.UseWaitCursor = false;
                 Application.DoEvents();
-                MessageBox.Show("Done");
+                txtLog.Text += "Export to '" + savefile + "' Done\r\n";
             }
         }
         private void btnExport_Click(object sender, EventArgs e)
         {
             string savefile = setFilename(sImportFilename);
+            if (savefile == null)
+                return;
             if (dataGridView1.Rows.Count > 0)
             {
                 Application.UseWaitCursor = true;
@@ -122,7 +132,7 @@ namespace memuse_convert
                 cvt1.ToCSV(cvt1._dataTable, savefile);// "exported.csv");
                 Application.UseWaitCursor = false;
                 Application.DoEvents();
-                MessageBox.Show("Done");
+                txtLog.Text += "Export to '" + savefile + "' Done\r\n";
             }
         }
 
@@ -138,6 +148,8 @@ namespace memuse_convert
             fd.Multiselect = false;
             if (fd.ShowDialog() == DialogResult.OK)
                 Filename = fd.FileName;
+            else
+                Filename = null;
             fd.Dispose();
             return Filename;
         }
@@ -153,6 +165,8 @@ namespace memuse_convert
             fd.RestoreDirectory = true;
             if (fd.ShowDialog() == DialogResult.OK)
                 Filename = fd.FileName;
+            else
+                Filename = null;
             fd.Dispose();
             return Filename;
         }
@@ -160,9 +174,51 @@ namespace memuse_convert
         private void btnLoad_Click(object sender, EventArgs e)
         {
             string sFileInput = getFilename();
+            if (sFileInput == null)
+                return;
             txtFile.Text = sFileInput;
-            cvt1._dataTable.Clear();
-            importFile(sFileInput);
+            if (System.IO.File.Exists(sFileInput))
+            {
+                if(cvt1._dataTable!=null)
+                    cvt1._dataTable.Clear();
+                importFile(sFileInput);
+            }
+        }
+
+        private void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (string sFileInput in files)
+            {
+                Console.WriteLine(sFileInput);
+                txtFile.Text = sFileInput;
+                if (System.IO.File.Exists(sFileInput))
+                {
+                    if(cvt1._dataTable!=null)
+                        cvt1._dataTable.Clear();
+                    importFile(sFileInput);
+                    string savefile = sFileInput + ".csv";
+                    if (dataGridView1.Rows.Count > 0)
+                    {
+                        Application.UseWaitCursor = true;
+                        Application.DoEvents();
+                        cvt1.ToCSV(cvt1._dataTable, savefile);// "exported.csv");
+                        Application.UseWaitCursor = false;
+                        Application.DoEvents();
+                        txtLog.Text+="Export to '"+sFileInput+ ".csv' Done\r\n";
+                    }
+
+                }
+            }
+        }
+
+        //allow dragging onto form
+        private void Form1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+            else
+                e.Effect = DragDropEffects.None;
         }
     }
 }

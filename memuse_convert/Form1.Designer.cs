@@ -32,11 +32,12 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.lblLineCount = new System.Windows.Forms.Label();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
             this.txtFile = new System.Windows.Forms.TextBox();
             this.txtLog = new System.Windows.Forms.TextBox();
-            this.lblLineCount = new System.Windows.Forms.Label();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -44,7 +45,7 @@
             // 
             // btnConvert
             // 
-            this.btnConvert.Location = new System.Drawing.Point(410, 29);
+            this.btnConvert.Location = new System.Drawing.Point(665, 29);
             this.btnConvert.Name = "btnConvert";
             this.btnConvert.Size = new System.Drawing.Size(120, 28);
             this.btnConvert.TabIndex = 0;
@@ -81,6 +82,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.progressBar1);
             this.panel1.Controls.Add(this.lblLineCount);
             this.panel1.Controls.Add(this.btnExport);
             this.panel1.Controls.Add(this.btnLoad);
@@ -89,12 +91,21 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(794, 63);
+            this.panel1.Size = new System.Drawing.Size(794, 74);
             this.panel1.TabIndex = 3;
+            // 
+            // lblLineCount
+            // 
+            this.lblLineCount.Location = new System.Drawing.Point(704, 7);
+            this.lblLineCount.Name = "lblLineCount";
+            this.lblLineCount.Size = new System.Drawing.Size(81, 16);
+            this.lblLineCount.TabIndex = 4;
+            this.lblLineCount.Text = "-";
+            this.lblLineCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // btnExport
             // 
-            this.btnExport.Location = new System.Drawing.Point(284, 29);
+            this.btnExport.Location = new System.Drawing.Point(539, 29);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(120, 28);
             this.btnExport.TabIndex = 3;
@@ -132,17 +143,16 @@
             this.txtLog.Size = new System.Drawing.Size(794, 75);
             this.txtLog.TabIndex = 4;
             // 
-            // lblLineCount
+            // progressBar1
             // 
-            this.lblLineCount.Location = new System.Drawing.Point(704, 29);
-            this.lblLineCount.Name = "lblLineCount";
-            this.lblLineCount.Size = new System.Drawing.Size(81, 16);
-            this.lblLineCount.TabIndex = 4;
-            this.lblLineCount.Text = "-";
-            this.lblLineCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.progressBar1.Location = new System.Drawing.Point(3, 37);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(478, 19);
+            this.progressBar1.TabIndex = 5;
             // 
             // Form1
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 491);
@@ -151,6 +161,8 @@
             this.MinimizeBox = false;
             this.Name = "Form1";
             this.Text = "memuse converter";
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Form1_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Form1_DragEnter);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
@@ -171,6 +183,7 @@
         private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.TextBox txtLog;
         private System.Windows.Forms.Label lblLineCount;
+        private System.Windows.Forms.ProgressBar progressBar1;
     }
 }
 

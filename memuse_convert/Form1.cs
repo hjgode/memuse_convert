@@ -129,7 +129,10 @@ namespace memuse_convert
             {
                 Application.UseWaitCursor = true;
                 Application.DoEvents();
-                cvt1.ToCSV(cvt1._dataTable, savefile);// "exported.csv");
+                if(chkExportWithTotal.Checked==false)
+                    cvt1.ToCSV(cvt1._dataTable, savefile);// "exported.csv");
+                else
+                    cvt1.ToCSV(cvt1._dataTable, savefile);// "exported.csv");
                 Application.UseWaitCursor = false;
                 Application.DoEvents();
                 txtLog.Text += "Export to '" + savefile + "' Done\r\n";

@@ -32,12 +32,13 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.lblLineCount = new System.Windows.Forms.Label();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
             this.txtFile = new System.Windows.Forms.TextBox();
             this.txtLog = new System.Windows.Forms.TextBox();
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.chkExportWithTotal = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -82,6 +83,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.chkExportWithTotal);
             this.panel1.Controls.Add(this.progressBar1);
             this.panel1.Controls.Add(this.lblLineCount);
             this.panel1.Controls.Add(this.btnExport);
@@ -93,6 +95,13 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(794, 74);
             this.panel1.TabIndex = 3;
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(3, 37);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(478, 19);
+            this.progressBar1.TabIndex = 5;
             // 
             // lblLineCount
             // 
@@ -143,12 +152,15 @@
             this.txtLog.Size = new System.Drawing.Size(794, 75);
             this.txtLog.TabIndex = 4;
             // 
-            // progressBar1
+            // chkExportWithTotal
             // 
-            this.progressBar1.Location = new System.Drawing.Point(3, 37);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(478, 19);
-            this.progressBar1.TabIndex = 5;
+            this.chkExportWithTotal.AutoSize = true;
+            this.chkExportWithTotal.Location = new System.Drawing.Point(542, 9);
+            this.chkExportWithTotal.Name = "chkExportWithTotal";
+            this.chkExportWithTotal.Size = new System.Drawing.Size(93, 17);
+            this.chkExportWithTotal.TabIndex = 6;
+            this.chkExportWithTotal.Text = "Remove \'total\'";
+            this.chkExportWithTotal.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -184,6 +196,7 @@
         private System.Windows.Forms.TextBox txtLog;
         private System.Windows.Forms.Label lblLineCount;
         private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.CheckBox chkExportWithTotal;
     }
 }
 

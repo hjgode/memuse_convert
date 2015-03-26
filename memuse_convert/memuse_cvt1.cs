@@ -60,6 +60,7 @@ namespace memuse_convert
             string processMemory = "";
             string totalmem = "";
             
+            //wa always have time in first column
             DataColumn dcTicks = new DataColumn("time", typeof(DateTime));
             _dataTable.Columns.Add(dcTicks);
 
@@ -67,12 +68,10 @@ namespace memuse_convert
             int errorLines = 0;
             while ((sline = file.ReadLine()) != null)
             {
-                //System.Console.Write(".");
                 FireEvent(MsgType.progress, lineCount);
                 lineCount++;
 
                 string[] splitted = sline.Split(new char[] { '\t' });
-                //updateStatus(lineCount++.ToString());
                 try
                 {
                     //first column is datetime
@@ -85,14 +84,20 @@ namespace memuse_convert
                     errorLines++;
                     continue;//read next line
                 }
+
+                //add a new datarow with the current datatime reading
                 DataRow dr = _dataTable.NewRow();
                 dr[0] = new DateTime(dtCurrent);
                 _dataTable.Rows.Add(dr);
 
+                //process the remaining columns
                 for (int x = 1; x < splitted.Length; x++)
                 {
+                    //do not add process IDs starting with '0x'
                     if (splitted[x] == "" || splitted[x].StartsWith("0x"))
-                        continue;
+                        continue;   //process next field
+
+                    //process names start with a single quote
                     if (splitted[x].StartsWith("'"))
                     {//process name
                         processName = splitted[x].Trim(new char[] { '\'' });
@@ -100,13 +105,16 @@ namespace memuse_convert
                         //add new column?
                         if (!_dataTable.Columns.Contains(processName))
                         {
+                            //add a new datacolumn with the name of the process
                             DataColumn dcNew = _dataTable.Columns.Add(processName, typeof(string));
                             dcNew.DefaultValue = "0";
                         }
                         dr[processName] = processMemory;
-                        continue;
+                        continue;   //process next field
                     }
-                    if (splitted[x].StartsWith("("))
+
+                    //some log may have total value surrounded by '(' and ')'
+                    if (splitted[x].StartsWith("("))    
                     {
                         totalmem = splitted[x].Trim(new char[] { '(', ')' });
                         if (!_dataTable.Columns.Contains("total"))
@@ -115,20 +123,45 @@ namespace memuse_convert
                             dcNew1.DefaultValue = "0";
                         }
                         dr["total"] = totalmem;
-                        continue;
+                        continue;   //process next field
                     }
                 }
-
             }
 
             file.Close();
+
+            //again set default values to "0" for all data columns
+            foreach (DataColumn dc in _dataTable.Columns)
+                if(dc.DataType!=typeof(DateTime))
+                    dc.DefaultValue = "0";
             //move total column to end
-            _dataTable.Columns["total"].SetOrdinal(_dataTable.Columns.Count - 1);
+            if(_dataTable.Columns.Contains("total"))
+                _dataTable.Columns["total"].SetOrdinal(_dataTable.Columns.Count - 1);
             return 0;
         }
 
         public void ToCSV(DataTable dtDataTable, string strFilePath)
         {
+            ToCSV(dtDataTable, strFilePath, false);
+        }
+
+        public void ToCSV(DataTable dtDataTable, string strFilePath, bool bExportTotal)
+        {
+            if (bExportTotal == false)
+            {
+                //remove column 'total'
+                DataColumn dcTotal=null;
+                try 
+	            {	        
+	                dcTotal = dtDataTable.Columns["total"];
+                    dtDataTable.Columns.Remove(dcTotal);
+	            }
+	            catch (Exception ex)
+	            {
+                    System.Diagnostics.Debug.WriteLine("no 'total' column found: " + ex.Message);
+	            }
+            }
+
             numLinesInFile = dtDataTable.Rows.Count;
             FireEvent(MsgType.progress_max, numLinesInFile);
             FireEvent(MsgType.progress, 0);

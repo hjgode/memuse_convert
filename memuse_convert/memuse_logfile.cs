@@ -10,7 +10,8 @@ namespace memuse_convert
 {
     class memuse_logfile
     {
-        public DataTable _dataTable;
+        //public DataTable _dataTable;
+        public List<memuse> myMemuse = new List<memuse>();
         //we need a list of times and process names with there mem usage
         //          name1       name2...
         //time1     mem11       mem21...
@@ -18,6 +19,41 @@ namespace memuse_convert
         string sFileName = "";
 
         int intCounter = 0;
+
+        public DataTable transpose()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add(new DataColumn("time"));
+            //find all time values
+            var times1 = myMemuse.Distinct(new memuse.TimeComparer());
+            var times = times1.Select(item => item.dt);
+            var procs = myMemuse.Distinct(new memuse.Comparer());
+            foreach (memuse m in procs)
+            {
+                dt.Columns.Add(new DataColumn(m.procname));
+            }
+            //go thru all time values
+            foreach ( DateTime d in times )
+            {
+                DataRow dr = dt.Rows.Add(new object[]{ d.ToString() });
+                //go thru all processes for this time
+                var query = from item in myMemuse
+                            where item.dt == d
+                            select new
+                            {
+                                item.procID,
+                                item.procname,
+                                item.procmem
+                            };
+                //add the mem used value to the right column
+                foreach (var m in query)
+                {
+                    dr[m.procname] = m.procmem;
+                }
+            }
+            return dt;
+        }
+
         public memuse_logfile(string sFile)
         {
             sFileName = sFile;
@@ -35,7 +71,7 @@ namespace memuse_convert
                 string[] newCol = getProcData(line);
                 if (newCol[0] == "")
                     continue;
-                if (newCol.Length != 66)
+                if (newCol.Length != 98)//66)
                     System.Diagnostics.Debugger.Break();
                 for (int x = 0; x < newCol.Length;x++ )
                 {
@@ -49,20 +85,27 @@ namespace memuse_convert
             file.Close();
             fileTemp.Close();
 
-            DataTable dt = new DataTable();
-            dt.Columns.Add("time", typeof(DateTime));
-            for (int x = 1; x < 65; x++)
-            {
-                dt.Columns.Add("name" + x.ToString(), typeof(string));
-                dt.Columns.Add("memuse" + x.ToString(), typeof(string));
-                x++;
-            }
-            dt.Columns.Add("total", typeof(int));
+            ////prepare the datatable
+            //DataTable dt = new DataTable();
+            //dt.Columns.Add("time", typeof(DateTime));
+            //for (int x = 1; x < 65; x++)
+            //{
+            //    dt.Columns.Add("name" + x.ToString(), typeof(string));
+            //    dt.Columns.Add("memuse" + x.ToString(), typeof(string));
+            //    x++;
+            //}
+            //dt.Columns.Add("total", typeof(int));
 
-            TransferCSVToTable(dt, sFileTemp);
-            DataTable dtNew = this.GenerateTransposedTable(dt);
-            _dataTable = dtNew;
+            ////TransferCSVToTable(dt, sFileTemp);
+
+            ////the table needs to be transposed to get one column per process name
+            ////then add new lines for every time stamp with the memory usage of each process
+
+            ////DataTable dtNew = this.GenerateTransposedTable(dt);
+            ////_dataTable = dtNew;
+            //_dataTable = dt;
         }
+
 
         static DateTime lastDateTime=DateTime.Now;
         string[] getProcData(string sLine)
@@ -71,7 +114,7 @@ namespace memuse_convert
             //max is timecol + 32Slots*3 [ProcId,ProcName,ProcMem] + 1 column with total = 98 columns
             //we ignore the ProcID column:
             //max is timecol + 32Slots*2 [ProcName,ProcMem] + 1 column with total = 98 columns
-            const int maxCols=66;
+            const int maxCols=98;
             //empty Row
             string[] newRow = new string[maxCols];
             int currColoum = 0;
@@ -86,41 +129,49 @@ namespace memuse_convert
             {
                 date = DateTime.Now + new TimeSpan(0, 0, 5 * intCounter);
             }
-            if (lastDateTime == date)
-                date = date + new TimeSpan(0, 0, 0, 0, 1);
+            //if (lastDateTime == date)
+            //    date = date + new TimeSpan(0, 0, 0, 0, 1);
             lastDateTime = date;
             //assign time to first col
             newRow[currColoum++] = date.ToShortDateString() + " " + date.ToShortTimeString();
 
             intCounter++;
             string proc_name = "";
-            int proc_mem = 0;
+            uint proc_mem = 0;
+            uint proc_id = 0;
+            
             for (int x = 1; x < splitted.Length; x++)
             {
 
                 if (splitted[x].Length == 0)    //not interested in empty cells
                     continue;
-                if (splitted[x].StartsWith("0x"))   //not interested in process IDs
-                    continue;
-                if (splitted[x].StartsWith("'"))    //the process name
-                {
-                    splitted[x] = splitted[x].Trim(new char[] { '\'' });
-                    proc_name = splitted[x];
-                    if (x + 1 < splitted.Length)
-                    {    //next is proc_mem
-                        proc_mem = int.Parse(splitted[x+1]);
-                        //now we have a datetime, a name and the memory
-                        //proc_dict.Add(proc_name, new process_memory_usage(date, proc_name, proc_mem));
-                        //procList.Add(new process_memory_usage(date, proc_name, proc_mem));
-                        newRow[currColoum++] = proc_name;
-                        newRow[currColoum++] = proc_mem.ToString();
-                        x++;
-                        continue;
+                if (splitted[x].StartsWith("0x"))
+                {   //process IDs
+                    proc_id = Convert.ToUInt32(splitted[x].Substring(2), 16);
+                    x++;
+                    if (splitted[x].StartsWith("'"))    //the process name
+                    {
+                        splitted[x] = splitted[x].Trim(new char[] { '\'' });
+                        proc_name = splitted[x];
+                        if (x + 1 < splitted.Length)
+                        {    //next is proc_mem
+                            proc_mem = uint.Parse(splitted[x + 1]);
+                            //now we have a datetime, a name and the memory
+                            //proc_dict.Add(proc_name, new process_memory_usage(date, proc_name, proc_mem));
+                            //procList.Add(new process_memory_usage(date, proc_name, proc_mem));
+                            newRow[currColoum++] = proc_name;
+                            newRow[currColoum++] = proc_mem.ToString();
+                            x++;
+                            myMemuse.Add(new memuse(date, proc_id, proc_name, proc_mem));
+                            continue;
+                        }
                     }
+                    continue;
                 }
                 if (x==splitted.Length-1 && splitted[x].StartsWith("("))
                 {    //the total value is within brackets
                     splitted[x] = splitted[x].Trim(new char[] { '(', ')' });
+                    myMemuse.Add(new memuse(date, 0, "Total", uint.Parse(splitted[x])));
                     //proc_dict.Add("total", new process_memory_usage(date, "total", Math.Abs(int.Parse(splitted[x]))));
                     //procList.Add(new process_memory_usage(date, "total", Math.Abs(int.Parse(splitted[x]))));
                     newRow[maxCols - 1] = Math.Abs(int.Parse(splitted[x])).ToString();
@@ -128,69 +179,7 @@ namespace memuse_convert
             }
             return newRow;
         }
-        public static void TransferCSVToTable(DataTable dt, string filePath)
-        {
-            string[] csvRows = System.IO.File.ReadAllLines(filePath);
-            string[] fields = null;
-            foreach (string csvRow in csvRows)
-            {
-                fields = csvRow.Split('\t');
-                DataRow row = dt.NewRow();
-                row.ItemArray = fields;
-                dt.Rows.Add(row);
-            }
-        }
-        private DataTable GenerateTransposedTable(DataTable inputTable)
-        {
-            DataTable outputTable = new DataTable();
 
-            // Add columns by looping rows
-
-            // Header row's first column is same as in inputTable
-            outputTable.Columns.Add(inputTable.Columns[0].ColumnName.ToString());
-
-            int count = 0;
-            // Header row's second column onwards, 'inputTable's first column taken
-            foreach (DataRow inRow in inputTable.Rows)
-            {
-                string newColName = inRow[0].ToString();
-                outputTable.Columns.Add(count.ToString()); //newColName);
-                count++;
-                System.Console.Write("+");
-            }
-
-            // Add rows by looping columns        
-            for (int rCount = 1; rCount <= inputTable.Columns.Count - 1; rCount++)
-            {
-                DataRow newRow = outputTable.NewRow();
-
-                // First column is inputTable's Header row's second column
-                newRow[0] = inputTable.Columns[rCount].ColumnName.ToString();
-                for (int cCount = 0; cCount <= inputTable.Rows.Count - 1; cCount++)
-                {
-                    string colValue = inputTable.Rows[cCount][rCount].ToString();
-                    System.Console.Write("#");
-                    newRow[cCount + 1] = colValue; 
-                }
-                outputTable.Rows.Add(newRow);
-            }
-
-            return outputTable;
-        }
 
     }
-
-    //class process_memory_usage
-    //{
-    //    public DateTime datetime;
-    //    public String name;
-    //    public int process_memory;
-    //    public process_memory_usage(DateTime dt, string n, int mem)
-    //    {
-    //        datetime = dt;
-    //        name = n;
-    //        process_memory = mem;
-    //    }
-    //}
-
 }

@@ -20,6 +20,7 @@ namespace memuse_convert
 
         private void button1_Click(object sender, EventArgs e)
         {
+            openFile();
         }
 
         void openFile()
@@ -34,6 +35,7 @@ namespace memuse_convert
                 {
                     memuse_logfile mLog = new memuse_logfile(ofd.FileName);
                     dataGridView1.DataSource = mLog.transpose();
+                    drawGraph();
                 }
                 catch (Exception ex)
                 {
@@ -42,6 +44,94 @@ namespace memuse_convert
             }
         }
 
+        void drawGraph()
+        {
+            DataTable dt = (DataTable) dataGridView1.DataSource;
+            this.SuspendLayout();
+
+            DataRow[] r = dt.Select("time <> ''", "time ASC");
+            string minS = (string)r.First()[0];
+            long min = DateTime.Parse(minS).ToFileTime() / 10000000L; ;
+            string maxS = (string)r.Last()[0];
+            long max = DateTime.Parse(maxS).ToFileTime() / 10000000L;
+            chart1.DataSource = dt;
+            for (int col = 1; col < dt.Columns.Count; col++)
+            {
+                try
+                {
+                    System.Windows.Forms.DataVisualization.Charting.Series serie = chart1.Series.Add(dt.Columns[col].ColumnName);
+                    serie.XValueMember = "time";
+                    serie.YValueMembers = dt.Columns[col].ColumnName;
+                    serie.Name = dt.Columns[col].ColumnName;
+                    serie.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.FastLine;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception: " + ex.Message + " col=" + col.ToString());
+                }
+                chart1.DataBind();
+            }
+
+            //List<GraphLib.DataSource> dataList = new List<GraphLib.DataSource>();
+            //plotterDisplayEx1.PanelLayout = GraphLib.PlotterGraphPaneEx.LayoutMode.NORMAL;
+            //plotterDisplayEx1.DoubleBuffering = true;
+            //long xsteps = dt.Rows.Count;
+            //for (int col = 8; col < 10 /*dt.Columns.Count*/; col++)
+            //{
+            //    GraphLib.DataSource ds = new GraphLib.DataSource();
+            //    ds.Length = dt.Rows.Count;
+            //    ds.AutoScaleX=true;
+            //    ds.AutoScaleY=true;
+            //    ds.Name = dt.Columns[col].ColumnName;
+            //    ds.OnRenderXAxisLabel = RenderXLabel;
+            //    ds.OnRenderYAxisLabel = RenderYLabel;
+            //    try
+            //    {
+            //        for (int row = 0; row < dt.Rows.Count; row++)
+            //        {
+            //            long myX = DateTime.Parse(dt.Rows[row][0].ToString()).ToFileTime() / 10000000L;
+            //            ds.Samples[row].x = myX;
+            //            float fValue=0;
+            //            if (float.TryParse(dt.Rows[row][col].ToString(), out fValue))
+            //            {
+            //                ds.Samples[row].y = float.Parse(dt.Rows[row][col].ToString());
+            //                //   (new GraphControl.XY(myX, float.Parse(dt.Rows[row][col].ToString()), Color.Red));
+            //            }
+            //            else
+            //            {
+            //                ds.Samples[row].y = 0;
+            //                //graph1.xyc.Add(new GraphControl.XY(myX, 0, Color.Red));
+            //            }
+            //        }
+            //        plotterDisplayEx1.DataSources.Add(ds);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        System.Diagnostics.Debug.WriteLine("Excpetion: " + ex.Message + " for col=" + col.ToString());
+            //    }
+            //}
+
+            this.ResumeLayout();
+        }
+        private String RenderXLabel(GraphLib.DataSource s, int idx)
+        {
+            if (s.AutoScaleX)
+            {
+                int Value = (int)(s.Samples[idx].x);
+                return "" + Value;
+            }
+            else
+            {
+                int Value = (int)(s.Samples[idx].x / 200);
+                String Label = "" + Value + "\"";
+                return Label;
+            }
+        }
+
+        private String RenderYLabel(GraphLib.DataSource s, float value)
+        {
+            return String.Format("{0:0.0}", value);
+        }
         void export2csv(DataGridView dGV, string filename)
         {
             if (dGV.RowCount == 0)
